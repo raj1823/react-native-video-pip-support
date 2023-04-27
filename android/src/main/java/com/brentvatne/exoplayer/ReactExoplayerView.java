@@ -2102,7 +2102,7 @@ class ReactExoplayerView extends FrameLayout implements
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 && packageManager
                 .hasSystemFeature(
-                        PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                        PackageManager.FEATURE_PICTURE_IN_PICTURE) && player != null) {
             long videoPosition = player.getCurrentPosition();
             Activity activity = themedReactContext.getCurrentActivity();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
