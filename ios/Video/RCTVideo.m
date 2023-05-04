@@ -793,7 +793,24 @@ static int const RCTVideoUnset = -1;
                                            selector:@selector(didFailToFinishPlaying:)
                                                name: AVPlayerItemFailedToPlayToEndTimeNotification
                                              object:nil];
+                                               [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleInterruption:) name:AVAudioSessionInterruptionNotification object:nil];
   
+}
+-(void)handleInterruption: (NSNotification *) notification {
+    NSDictionary *userInfo = notification.userInfo;
+    NSNumber *type = [userInfo valueForKey:AVAudioSessionInterruptionTypeKey];
+    NSLog(@"Int type: %@", type);
+    if ([type isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeBegan]]) {
+        NSLog(@"Interruption Began");
+    } else if ([type isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeEnded]]) {
+        if (_player.timeControlStatus == AVPlayerTimeControlStatusPaused) {
+            NSLog(@"Interruption Ended");
+            [_player pause];
+            #warning Should add a check here for LIVE PLAYER.
+            [_player seekToTime:kCMTimeZero];
+            [_player play];
+        }
+    }
 }
 
 - (void)handleAVPlayerAccess:(NSNotification *)notification {
