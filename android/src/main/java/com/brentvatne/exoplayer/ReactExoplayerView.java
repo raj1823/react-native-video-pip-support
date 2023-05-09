@@ -8,6 +8,7 @@ import static com.google.android.exoplayer2.C.CONTENT_TYPE_SS;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.res.Configuration;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
