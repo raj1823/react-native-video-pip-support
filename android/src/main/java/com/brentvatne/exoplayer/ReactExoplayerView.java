@@ -2099,6 +2099,8 @@ class ReactExoplayerView extends FrameLayout implements
      */
     public void enterPictureInPictureMode() {
         PackageManager packageManager = themedReactContext.getPackageManager();
+        int orientation = this.getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 && packageManager
                 .hasSystemFeature(
@@ -2111,6 +2113,7 @@ class ReactExoplayerView extends FrameLayout implements
             } else {
                 activity.enterPictureInPictureMode();
             }
+        }
         }
     }
 
