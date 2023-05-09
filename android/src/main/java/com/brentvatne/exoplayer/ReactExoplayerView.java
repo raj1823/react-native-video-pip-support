@@ -294,8 +294,15 @@ class ReactExoplayerView extends FrameLayout implements
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (showPictureInPictureOnLeave) {
-                    self.setPictureInPicture(true);
-                    self.onPictureInPictureModeChanged(true);
+                    if(self.getOrientation() == Configuration.ORIENTATION_LANDSCAPE){
+                        self.setPictureInPicture(true);
+                        self.onPictureInPictureModeChanged(true);
+                    }
+                    else{
+                        self.setPictureInPicture(false);
+                        self.onPictureInPictureModeChanged(false);
+                    }
+                   
                 }
             }
         };
@@ -2095,17 +2102,21 @@ class ReactExoplayerView extends FrameLayout implements
         isInPictureInPictureMode = pictureInPicture;
     }
 
+    public int getOrientation(){
+        return this.getResources().getConfiguration().orientation;
+    }
+
     /**
      * PIP handled, for N devices that support it, not "officially".
      */
     public void enterPictureInPictureMode() {
         PackageManager packageManager = themedReactContext.getPackageManager();
-        int orientation = this.getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if(this.getOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 && packageManager
                 .hasSystemFeature(
-                        PackageManager.FEATURE_PICTURE_IN_PICTURE) && player != null) {
+                        PackageManager.FEATURE_PICTURE_IN_PICTURE) ) {
             long videoPosition = player.getCurrentPosition();
             Activity activity = themedReactContext.getCurrentActivity();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
