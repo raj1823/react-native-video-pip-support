@@ -4,7 +4,9 @@ import static com.google.android.exoplayer2.C.CONTENT_TYPE_DASH;
 import static com.google.android.exoplayer2.C.CONTENT_TYPE_HLS;
 import static com.google.android.exoplayer2.C.CONTENT_TYPE_OTHER;
 import static com.google.android.exoplayer2.C.CONTENT_TYPE_SS;
-
+import com.facebook.react.modules.storage.ReactDatabaseSupplier;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -104,6 +106,7 @@ import com.google.android.exoplayer2.source.ads.AdsMediaSource;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 
 import com.google.common.collect.ImmutableList;
+import org.json.JSONObject;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -294,14 +297,8 @@ class ReactExoplayerView extends FrameLayout implements
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (showPictureInPictureOnLeave) {
-                    if(self.getOrientation() == Configuration.ORIENTATION_LANDSCAPE){
-                        self.setPictureInPicture(true);
-                        self.onPictureInPictureModeChanged(true);
-                    }
-                    else{
-                        self.setPictureInPicture(false);
-                        self.onPictureInPictureModeChanged(false);
-                    }
+                    self.setPictureInPicture(self.shouldTriggerPipMode());
+                    self.onPictureInPictureModeChanged(true);
                    
                 }
             }
@@ -2106,26 +2103,51 @@ class ReactExoplayerView extends FrameLayout implements
         return this.getResources().getConfiguration().orientation;
     }
 
+    public Boolean shouldTriggerPipMode(){
+        SQLiteDatabase readableDatabase = null;
+        readableDatabase = ReactDatabaseSupplier.getInstance(this.getContext()).getReadableDatabase();
+        Cursor catalystLocalStorage = readableDatabase.query("catalystLocalStorage", new String[]{"key", "value"}, null, null, null, null, null);
+        Boolean shouldTriggerPipMode = false;
+        ArrayList<JSONObject> collection = null;
+        if (catalystLocalStorage.moveToFirst()) {
+            do {
+                try {
+                    String json = catalystLocalStorage.getString(catalystLocalStorage.getColumnIndex("value"));
+                    if(json instanceof  String ){
+                        if(json.contains("pipModeEnabled")){
+                            json = json.replace("\\\"","'");
+                            JSONObject obj = new JSONObject(json.substring(1,json.length()-1));
+                            shouldTriggerPipMode =  obj.getBoolean("pipModeEnabled");
+                        }
+
+                    }
+
+                } catch(Exception e) {
+                    Log.d("","Exception Caught"+e);
+                }
+            } while(catalystLocalStorage.moveToNext());
+        }
+
+        return shouldTriggerPipMode;
+
+    }
     /**
      * PIP handled, for N devices that support it, not "officially".
      */
     public void enterPictureInPictureMode() {
         PackageManager packageManager = themedReactContext.getPackageManager();
-        if(this.getOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 && packageManager
                 .hasSystemFeature(
                         PackageManager.FEATURE_PICTURE_IN_PICTURE) ) {
-            long videoPosition = player.getCurrentPosition();
             Activity activity = themedReactContext.getCurrentActivity();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this.shouldTriggerPipMode()) {
                 PictureInPictureParams.Builder params = new PictureInPictureParams.Builder();
                 activity.enterPictureInPictureMode(params.build());
             } else {
-                activity.enterPictureInPictureMode();
+                isInPictureInPictureMode = false;
             }
-        }
         }
     }
 
