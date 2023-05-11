@@ -297,8 +297,9 @@ class ReactExoplayerView extends FrameLayout implements
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (showPictureInPictureOnLeave) {
-                    self.setPictureInPicture(self.shouldTriggerPipMode());
-                    self.onPictureInPictureModeChanged(true);
+                    Boolean shouldTriggerPip = self.shouldTriggerPipMode();
+                    self.setPictureInPicture(shouldTriggerPip);
+                    self.onPictureInPictureModeChanged(shouldTriggerPip);
                    
                 }
             }
